@@ -9,7 +9,7 @@ int main() {
         }
     };
   SkipList<int, intLesser, int> *mySL = new SkipList<int, intLesser, int>();
-  
+
   cout << "SKIP LIST DATA : " << endl;
   mySL->insert(4, 88);
   mySL->insert(5, 87);
@@ -27,9 +27,9 @@ int main() {
   //mySL->Search(4);
 
   int i = 4; // Node to be deleted
-  
+
   mySL->Delete(i);
-  
+
   cout <<"\n \n \n AFTER DELETION OF : " << i << endl;
   cout << "\n \n \n " << endl;
   mySL->printData();
