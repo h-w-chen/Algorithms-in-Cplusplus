@@ -67,6 +67,9 @@ public:
     };
 
     virtual void printData() override {
+        // not need to print the left/right bounds
+        if (this->key == Min<T>() || this->key == Max<T>())
+            return;
         cout << this->key << "(" << this->value << ")" << " ";
     }
 };
