@@ -11,19 +11,28 @@
 
 using namespace std;
 
+// left/right bounds
+template <typename T> T Min();
+template <typename T> T Max();
+
+template <> int Min<int>( ){ return -INFINITY; }
+template <> int Max<int>( ){ return +INFINITY; }
+template <> std::string Min<std::string>( ){ return "---"; }
+template <> std::string Max<std::string>() { return "+++"; };
+
+
+// type for internal node
 template <class T>
 class Node {
 public:
     virtual ~Node() = default;
 public:
-  // Node Data
   T key;
   Node<T>* next;
   Node<T>* prev;
   Node<T>* up;
   Node<T>* down;
 
-  // Node Constructor
   Node(const T& key) {
     this->key = key;
     this->next = nullptr;
@@ -32,10 +41,11 @@ public:
     this->down = nullptr;
   };
 
-// IF KEY IS LESS THAN INFINITY AND GREATER THAN NEGATIVE INFINITY --> Print
   virtual void printData() {
-//      if (key < 2147483645 && key > -2147483645) cout << key << " ";
-      cout << key << " ";
+    // not need to print the left/right bounds
+    if (this->key == Min<T>() || this->key == Max<T>())
+        return;
+    cout << this->key << " ";
 
     // TO SEE UP,DOwN,LEFT,RIGHT NODE DATA FOR EVERY NODE, UNCOMMENT BELOW
     /* if(down != nullptr)cout << ": down = " << down->key << "  / ";
@@ -46,27 +56,20 @@ public:
   };
 };
 
+// type for leaf nodes
 template <class T, typename TVal>
-struct StuffedNode : Node<T> {
+struct LeafNode : Node<T> {
 public:
-    TVal value_;
+    TVal value;
 
-    StuffedNode(const T& key, const TVal & value) : Node<T>(key) {
-        this->value_ = value;
+    LeafNode(const T& key, const TVal & value) : Node<T>(key) {
+        this->value = value;
     };
 
     virtual void printData() override {
-        cout << this->key << "(" << this->value_ << ")" << " ";
+        cout << this->key << "(" << this->value << ")" << " ";
     }
 };
-
-template <typename T> T Min();
-template <typename T> T Max();
-
-template <> int Min<int>( ){ return -INFINITY; }
-template <> int Max<int>( ){ return +INFINITY; }
-template <> std::string Min<std::string>( ){ return "---"; }
-template <> std::string Max<std::string>() { return "+++"; };
 
 template <class T, typename TLess, typename TVal>
 class SkipList {
@@ -85,7 +88,7 @@ class SkipList {
   void printData();
 
   // Search for node, return Node if found
-  StuffedNode<T, TVal>* Search(T key);
+  LeafNode<T, TVal>* Search(T key);
 
   // Deletes node from skip list
   void Delete(T N);
@@ -106,9 +109,9 @@ SkipList<T, TLess, TVal>::SkipList() {
   // Set seed for random number generator to ensure randomness
   srand(static_cast<unsigned int>(time(NULL)));
 
-  Node<T>* Head1 = new StuffedNode<T, TVal>(Min<T>(), TVal());
+  Node<T>* Head1 = new LeafNode<T, TVal>(Min<T>(), TVal());
 
-  Node<T>* Tail1 = new StuffedNode<T, TVal>(Max<T>(), TVal());
+  Node<T>* Tail1 = new LeafNode<T, TVal>(Max<T>(), TVal());
 
   Head1->next = Tail1;
 
@@ -118,7 +121,7 @@ SkipList<T, TLess, TVal>::SkipList() {
 }
 
 template <class T, typename TLess, typename TVal>
-StuffedNode<T, TVal>* SkipList<T, TLess, TVal>::Search(T key) {
+LeafNode<T, TVal>* SkipList<T, TLess, TVal>::Search(T key) {
   Node<T>* topleft;
   topleft = Heads[Heads.size() - 1];
   Node<T>* pt; // = new Node<T>(-INFINITY);
@@ -132,7 +135,7 @@ StuffedNode<T, TVal>* SkipList<T, TLess, TVal>::Search(T key) {
       pt = pt->down;
     }
   }
-  return static_cast<StuffedNode<T, TVal>*>(pt);
+  return static_cast<LeafNode<T, TVal>*>(pt);
 }
 
 // Insert to Level Function
@@ -143,7 +146,7 @@ Node<T>* SkipList<T, TLess, TVal>::insert_to_level(T data, TVal value, int level
   int i = level;
   Node<T>* N;
   if (level == 0) {
-      N = new StuffedNode<T, TVal>(data, value);
+      N = new LeafNode<T, TVal>(data, value);
 //      N = new Node<T>(data);
   } else {
       N = new Node<T>(data);

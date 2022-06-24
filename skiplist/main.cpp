@@ -61,9 +61,9 @@ int main() {
         mySL->printData();
 
         auto p = mySL->Search("a");
-        cout << "found value: " << p->value_ << endl;
+        cout << "found value: " << p->value << endl;
         p = mySL->Search("bb");
-        cout << "found value: " << p->value_ << endl;
+        cout << "found value: " << p->value << endl;
         p = mySL->Search("x");
         cout << "found node*: " << p << endl;
     }
