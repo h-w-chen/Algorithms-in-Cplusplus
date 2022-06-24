@@ -159,6 +159,14 @@ LeafNode<T, TVal> *SkipList<T, TLess, TVal>::Search(T key) {
 }
 
 template<class T>
+void hookup_leaf_node(Node<T> *node, Node<T> *right) {
+    node->next = right;
+    node->prev = right->prev;
+    right->prev->next = node;
+    right->prev = node;
+}
+
+template<class T>
 void hookup_internal_node(Node<T> *node, Node<T> *right, Node<T> *down) {
     node->next = right;
     node->prev = right->prev;
@@ -171,7 +179,7 @@ void hookup_internal_node(Node<T> *node, Node<T> *right, Node<T> *down) {
 // Insert to skip list function
 template<class T, typename TLess, typename TVal>
 bool SkipList<T, TLess, TVal>::insert(T key, TVal value) {
-    // based on https://www.geeksforgeeks.org/skip-list-set-2-insertion/
+    // rewritten based on https://www.geeksforgeeks.org/skip-list-set-2-insertion/
     /*    start from the highest level of skip list
         move the current pointer forward while key
         of node of pointer is not less than the key;
@@ -199,21 +207,19 @@ bool SkipList<T, TLess, TVal>::insert(T key, TVal value) {
         level--;
     }
 
-    // now we should be at the first node not less than key, at the leaf level
+    // now we should have reached the first node not less than key, at the leaf level
     if (pt->key == key) {
         return false;
     }
 
+    assert(this->lesser.isLessThan(pt->prev->key, key));
+    assert(this->lesser.isLessThan(key, pt->key));
     Node<T> *leaf = new LeafNode<T, TVal>(key, value);
-    leaf->next = pt;
-    leaf->prev = pt->prev;
-    pt->prev->next = leaf;
-    pt->prev = leaf;
-
+    hookup_leaf_node(leaf, pt);
     Node<T> *down = leaf;
     anchors.pop_back();
 
-    // check to grow the skip tower
+    // check to grow the skip tower from bottom up
     int Coin_Toss = rand() % 2;
     int i = 0;
     while (Coin_Toss == 0) {
