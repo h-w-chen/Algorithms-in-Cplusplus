@@ -8,21 +8,21 @@ int main() {
             return a < b;
         }
     };
-  SkipList<int, intLesser> *mySL = new SkipList<int, intLesser>();
+  SkipList<int, intLesser, int> *mySL = new SkipList<int, intLesser, int>();
   
   cout << "SKIP LIST DATA : " << endl;
-  mySL->insert(4);
-  mySL->insert(5);
-  mySL->insert(6);
-  mySL->insert(2);
-  mySL->insert(3);
-  mySL->insert(7); 
-  mySL->insert(10);
-  mySL->insert(311);
-  mySL->insert(0); 
-  mySL->insert(8);
-  mySL->insert(9);
-  mySL->insert(11);
+  mySL->insert(4, 88);
+  mySL->insert(5, 87);
+  mySL->insert(6, 86);
+  mySL->insert(2, 82);
+  mySL->insert(3, 83);
+  mySL->insert(7, 87);
+  mySL->insert(10, 90);
+  mySL->insert(311, 8311);
+  mySL->insert(0, 80);
+  mySL->insert(8, 88);
+  mySL->insert(9, 89);
+  mySL->insert(11, 811);
   mySL->printData();
   //mySL->Search(4);
 
@@ -49,12 +49,23 @@ int main() {
             }
         };
 
-        SkipList<std::string, strLesser> *mySL = new SkipList<std::string, strLesser>();
+        SkipList<std::string, strLesser, int> *mySL = new SkipList<std::string, strLesser, int>();
 
         cout << "SKIP LIST DATA : " << endl;
-        mySL->insert("a");
-        mySL->insert("b");
+        mySL->insert("a", 100);
+        mySL->insert("b", 200);
+        mySL->insert("aa", 300);
+        mySL->insert("bb", 400);
+        mySL->insert("ac", 500);
+        mySL->insert("bc", 600);
         mySL->printData();
+
+        auto p = mySL->Search("a");
+        cout << "found value: " << p->value_ << endl;
+        p = mySL->Search("bb");
+        cout << "found value: " << p->value_ << endl;
+        p = mySL->Search("x");
+        cout << "found node*: " << p << endl;
     }
 
     return 0;
