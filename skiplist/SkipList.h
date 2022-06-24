@@ -90,11 +90,21 @@ public:
 template<class T, typename TLess, typename TVal>
 class SkipList {
 private:
-    // Head of each Linked List in Skiplist
-    vector<Node<T> *> Heads;
+    class list{
+    private:
+        Node<T> *header_;
+        Node<T> *tail_;
+    public:
+        list(Node<T> * header, Node<T> *tail): header_(header), tail_(tail) {
+            this->header_->next = this->tail_;
+            this->tail_->prev = this->header_;
+        }
+        Node<T> *getTail() const { return this->tail_;}
+        Node<T> *getHeader() const { return this->header_;}
+    };
 
-    // Number of Levels in SkipList, Accessed via Heads
-    int Levels;
+    // Head of each Linked List in Skiplist
+    vector<list> Heads;
 
     TLess lesser;
 
@@ -134,13 +144,13 @@ SkipList<T, TLess, TVal>::SkipList() {
 
     Tail1->prev = Head1;
 
-    Heads.push_back(Head1);
+    Heads.push_back(list{Head1, Tail1});
 }
 
 template<class T, typename TLess, typename TVal>
 LeafNode<T, TVal> *SkipList<T, TLess, TVal>::Search(T key) {
     Node<T> *topleft;
-    topleft = Heads[Heads.size() - 1];
+    topleft = Heads[Heads.size() - 1].getHeader();
     Node<T> *pt; // = new Node<T>(-INFINITY);
     pt = topleft;
     while (pt != nullptr) {
@@ -174,7 +184,7 @@ Node<T> *SkipList<T, TLess, TVal>::insert_to_level(T data, TVal value, int level
     }
     N->down = Down;
     Node<T> *pt; // = new Node<T>(0);
-    pt = Heads[i];
+    pt = Heads[i].getHeader();
 
     while (pt->next != nullptr && this->lesser.isLessThan(pt->next->key, data)) {
         pt = pt->next;
@@ -189,30 +199,31 @@ Node<T> *SkipList<T, TLess, TVal>::insert_to_level(T data, TVal value, int level
 // Insert to skip list function
 template<class T, typename TLess, typename TVal>
 void SkipList<T, TLess, TVal>::insert(T key, TVal value) {
-    int i = 0;
-    Node<T> *Down = insert_to_level(key, value, i, nullptr);  // Insert key to bottom level
+    // insert to leaf node level first
+    Node<T> *Down = insert_to_level(key, value, 0, nullptr);  // Insert key to bottom level
+
     // Now Decide Whether to Create Top Layer and Insert;
     int Coin_Toss = rand() % 2;
+    int i = 0;
     while (Coin_Toss == 0) {
         i++;
-        if (Levels < i) {
-            Levels += 1;
+        // check to grow the tower one more level
+        if (this->Heads.size() - 1 < i) {
             Node<T> *NewHead = new Node<T>(Min<T>());
             Node<T> *NewTail = new Node<T>(Max<T>());
-            NewHead->next = NewTail;
-            NewTail->prev = NewHead;
 
             // left/right pivots
-            Heads[i - 1]->up = NewHead;
-            NewHead->down = Heads[i - 1];
-           // Heads[i - 1].back()->up = NewTail;
-            //NewTail->down = Heads[i - 1].back();
+            Heads[i - 1].getHeader()->up = NewHead;
+            NewHead->down = Heads[i - 1].getHeader();
+            Heads[i - 1].getTail()->up = NewTail;
+            NewTail->down = Heads[i - 1].getTail();
 
-            Heads.push_back(NewHead);
+            Heads.push_back(list(NewHead, NewTail));
         }
         Node<T> *N = insert_to_level(key, value, i, Down);
         Down->up = N;
         Down = N;
+
         Coin_Toss = rand() % 2;
     }
     return;
@@ -245,7 +256,7 @@ void SkipList<T, TLess, TVal>::printData() {
     for (int i = 0; i != Heads.size(); i++) {
         cout << " LEVEL : " << i << endl;
         Node<T> *pt; //= new Node<T>(Min<T>());
-        pt = Heads[i];
+        pt = Heads[i].getHeader();
         while (pt != nullptr) {
             pt->printData();
             pt = pt->next;
