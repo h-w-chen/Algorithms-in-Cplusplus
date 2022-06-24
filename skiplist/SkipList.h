@@ -126,7 +126,7 @@ public:
     // Deletes node from skip list
     void Delete(T N);
 
-    virtual ~SkipList();
+    ~SkipList();
 };
 
 // Constructor
