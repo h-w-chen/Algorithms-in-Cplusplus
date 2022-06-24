@@ -2,39 +2,40 @@
 #include "SkipList.h"
 
 int main() {
-    struct intLesser {
-        bool isLessThan(int a, int b) {
-            return a < b;
-        }
-    };
-  SkipList<int, intLesser, int> *mySL = new SkipList<int, intLesser, int>();
+    {
+        struct intLesser {
+            bool isLessThan(int a, int b) {
+                return a < b;
+            }
+        };
+        SkipList<int, intLesser, int> *mySL = new SkipList<int, intLesser, int>();
 
-  cout << "SKIP LIST DATA : " << endl;
-  mySL->insert(4, 88);
-  mySL->insert(5, 87);
-  mySL->insert(6, 86);
-  mySL->insert(2, 82);
-  mySL->insert(3, 83);
-  mySL->insert(7, 87);
-  mySL->insert(10, 90);
-  mySL->insert(311, 8311);
-  mySL->insert(0, 80);
-  mySL->insert(8, 88);
-  mySL->insert(9, 89);
-  mySL->insert(11, 811);
-  mySL->printData();
-  //mySL->Search(4);
+        cout << "SKIP LIST DATA : " << endl;
+        mySL->insert(4, 88);
+        mySL->insert(5, 87);
+        mySL->insert(6, 86);
+        mySL->insert(2, 82);
+        mySL->insert(3, 83);
+        mySL->insert(7, 87);
+        mySL->insert(10, 90);
+        mySL->insert(311, 8311);
+        mySL->insert(0, 80);
+        mySL->insert(8, 88);
+        mySL->insert(9, 89);
+        mySL->insert(11, 811);
+        mySL->printData();
+        //mySL->Search(4);
 
-  int i = 4; // Node to be deleted
+        int i = 4; // Node to be deleted
 
-  mySL->Delete(i);
+        mySL->Delete(i);
 
-  cout <<"\n \n \n AFTER DELETION OF : " << i << endl;
-  cout << "\n \n \n " << endl;
-  mySL->printData();
+        cout << "\n \n \n AFTER DELETION OF : " << i << endl;
+        cout << "\n \n \n " << endl;
+        mySL->printData();
 
-  cout<< endl;
-
+        cout << endl;
+    }
 
   // try on string
     {

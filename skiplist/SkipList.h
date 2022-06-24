@@ -125,6 +125,8 @@ public:
 
     // Deletes node from skip list
     void Delete(T N);
+
+    virtual ~SkipList();
 };
 
 // Constructor
@@ -284,6 +286,15 @@ void SkipList<T, TLess, TVal>::printData() {
             pt = pt->next;
         }
         cout << endl;
+    }
+}
+
+template<class T, typename TLess, typename TVal>
+SkipList<T, TLess, TVal>::~SkipList() {
+    for (list &levelist: this->Heads) {
+        for (auto p = levelist.getHeader(); p != nullptr; p = p->next) {
+            delete p;
+        }
     }
 }
 
