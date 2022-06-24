@@ -1,5 +1,4 @@
 #include <iostream>
-#include <limits>
 #include "SkipList.h"
 
 int main() {
@@ -63,6 +62,8 @@ int main() {
         auto p = mySL->Search("a");
         cout << "found value: " << p->value << endl;
         p = mySL->Search("bb");
+        cout << "found value: " << p->value << endl;
+        p = mySL->Search("bc");
         cout << "found value: " << p->value << endl;
         p = mySL->Search("x");
         cout << "found node*: " << p << endl;

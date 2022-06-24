@@ -9,6 +9,7 @@
 #include <random>
 #include <ctime>
 #include <vector>
+#include <cassert>
 
 using namespace std;
 
@@ -108,10 +109,6 @@ private:
 
     TLess lesser;
 
-    // To insert to a specific Level
-    // Returns the pointer to the up node
-    Node<T> *insert_to_level(T N, TVal val, int level, Node<T> *down);
-
     // Deletes a Node from its linked list
     void Delete_Node(Node<T> *N);
 
@@ -137,22 +134,13 @@ SkipList<T, TLess, TVal>::SkipList() {
     srand(static_cast<unsigned int>(time(NULL)));
 
     Node<T> *Head1 = new LeafNode<T, TVal>(Min<T>(), TVal());
-
     Node<T> *Tail1 = new LeafNode<T, TVal>(Max<T>(), TVal());
-
-    Head1->next = Tail1;
-
-    Tail1->prev = Head1;
-
     Heads.push_back(list{Head1, Tail1});
 }
 
 template<class T, typename TLess, typename TVal>
 LeafNode<T, TVal> *SkipList<T, TLess, TVal>::Search(T key) {
-    Node<T> *topleft;
-    topleft = Heads[Heads.size() - 1].getHeader();
-    Node<T> *pt; // = new Node<T>(-INFINITY);
-    pt = topleft;
+    Node<T> *pt = Heads[Heads.size() - 1].getHeader();
     while (pt != nullptr) {
         if (pt->key == key) {
             break;
@@ -163,52 +151,64 @@ LeafNode<T, TVal> *SkipList<T, TLess, TVal>::Search(T key) {
         }
     }
 
-    while ( pt != nullptr && pt->down != nullptr)
+    if (pt == nullptr) return nullptr;
+
+    while ( pt->down != nullptr)
         pt = pt->down;
-
     return static_cast<LeafNode<T, TVal> *>(pt);
-}
-
-// Insert to Level Function
-// Inserts a node to a level given the data to be inserted, The level to be
-// inserted to , the node that will be the down of the node added
-template<class T, typename TLess, typename TVal>
-Node<T> *SkipList<T, TLess, TVal>::insert_to_level(T data, TVal value, int level, Node<T> *Down) {
-    int i = level;
-    Node<T> *N;
-    if (level == 0) {
-        N = new LeafNode<T, TVal>(data, value);
-//      N = new Node<T>(data);
-    } else {
-        N = new Node<T>(data);
-    }
-    N->down = Down;
-    Node<T> *pt; // = new Node<T>(0);
-    pt = Heads[i].getHeader();
-
-    while (pt->next != nullptr && this->lesser.isLessThan(pt->next->key, data)) {
-        pt = pt->next;
-    }
-    N->prev = pt;
-    N->next = pt->next;
-    pt->next = N;
-    N->next->prev = N;
-    return N;
 }
 
 // Insert to skip list function
 template<class T, typename TLess, typename TVal>
 void SkipList<T, TLess, TVal>::insert(T key, TVal value) {
-    // insert to leaf node level first
-    Node<T> *Down = insert_to_level(key, value, 0, nullptr);  // Insert key to bottom level
+    // based on https://www.geeksforgeeks.org/skip-list-set-2-insertion/
+    /*    start from the highest level of skip list
+        move the current pointer forward while key
+        of node of pointer is not less than the key;
+        move one level down and continue search
+    */
+    vector<Node<T> *> anchors = {};
 
-    // Now Decide Whether to Create Top Layer and Insert;
+    // at the highest level, locate the first node not less than key
+    Node<T> *pt = this->Heads.back().getHeader();
+    while (this->lesser.isLessThan(pt->key, key)) {
+        pt = pt->next;
+    }
+    anchors.push_back(pt);
+
+    // go through all subsequent levels
+    int level = this->Heads.size() - 2;
+    while (level >= 0) {
+        assert(pt->key == pt->down->key);
+        assert(!this->lesser.isLessThan(pt->key, key));
+        pt = pt->down;
+        while (!this->lesser.isLessThan(pt->prev->key, key)) {
+            pt = pt->prev;
+        }
+        anchors.push_back(pt);
+        level--;
+    }
+
+    // now we should be at the first node not less than key, at the leaf level
+    // todo: consider proper semantics for existent node
+    assert(pt->key != key);
+
+    Node<T> *leaf = new LeafNode<T, TVal>(key, value);
+    leaf->next = pt;
+    leaf->prev = pt->prev;
+    pt->prev->next = leaf;
+    pt->prev = leaf;
+
+    Node<T> *down = leaf;
+    anchors.pop_back();
+
+    // check to grow the skip tower
     int Coin_Toss = rand() % 2;
     int i = 0;
     while (Coin_Toss == 0) {
         i++;
-        // check to grow the tower one more level
-        if (this->Heads.size() - 1 < i) {
+        if (anchors.size() == 0) {
+            // need to create one more level
             Node<T> *NewHead = new Node<T>(Min<T>());
             Node<T> *NewTail = new Node<T>(Max<T>());
 
@@ -219,14 +219,23 @@ void SkipList<T, TLess, TVal>::insert(T key, TVal value) {
             NewTail->down = Heads[i - 1].getTail();
 
             Heads.push_back(list(NewHead, NewTail));
+            pt = NewTail;
+        } else {
+            pt = anchors.back();
+            anchors.pop_back();
         }
-        Node<T> *N = insert_to_level(key, value, i, Down);
-        Down->up = N;
-        Down = N;
+
+        Node<T> *N = new Node<T>(key);
+        N->next = pt;
+        N->prev = pt->prev;
+        pt->prev->next = N;
+        pt->prev = N;
+        down->up = N;
+        N->down = down;
+        down = N;
 
         Coin_Toss = rand() % 2;
     }
-    return;
 }
 
 template<class T, typename TLess, typename TVal>
