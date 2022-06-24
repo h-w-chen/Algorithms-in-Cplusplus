@@ -3,7 +3,12 @@
 #include "SkipList.h"
 
 int main() {
-  SkipList<int> *mySL = new SkipList<int>();
+    struct intLesser {
+        bool isLessThan(int a, int b) {
+            return a < b;
+        }
+    };
+  SkipList<int, intLesser> *mySL = new SkipList<int, intLesser>();
   
   cout << "SKIP LIST DATA : " << endl;
   mySL->insert(4);
@@ -32,5 +37,25 @@ int main() {
   cout<< endl;
 
 
-  return 0;
+  // try on string
+    {
+        struct strLesser {
+            bool isLessThan(std::string a, std::string b) {
+                if (a == Min<std::string>() || b == Max<std::string>())
+                    return true;
+                if (a == Max<std::string>() || b == Min<std::string>())
+                    return false;
+                return a < b;
+            }
+        };
+
+        SkipList<std::string, strLesser> *mySL = new SkipList<std::string, strLesser>();
+
+        cout << "SKIP LIST DATA : " << endl;
+        mySL->insert("a");
+        mySL->insert("b");
+        mySL->printData();
+    }
+
+    return 0;
 }

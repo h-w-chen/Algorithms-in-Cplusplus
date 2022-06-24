@@ -32,7 +32,8 @@ struct Node {
 
   // IF KEY IS LESS THAN INFINITY AND GREATER THAN NEGATIVE INFINITY --> Print
   void printData() {
-    if (key < 2147483645 && key > -2147483645) cout << key << " ";
+//      if (key < 2147483645 && key > -2147483645) cout << key << " ";
+      cout << key << " ";
 
     // TO SEE UP,DOwN,LEFT,RIGHT NODE DATA FOR EVERY NODE, UNCOMMENT BELOW
     /* if(down != nullptr)cout << ": down = " << down->key << "  / ";
@@ -43,7 +44,15 @@ struct Node {
   };
 };
 
-template <class T>
+template <typename T> T Min();
+template <typename T> T Max();
+
+template <> int Min<int>( ){ return -INFINITY; }
+template <> int Max<int>( ){ return +INFINITY; }
+template <> std::string Min<std::string>( ){ return "---"; }
+template <> std::string Max<std::string>() { return "+++"; };
+
+template <class T, typename TLess>
 class SkipList {
  public:
   // Constructor for Doubly Linked List
@@ -71,17 +80,19 @@ class SkipList {
   vector<Node<T>*> Heads;  // Head of each Linked List in Skiplist
 
   int Levels;  // Number of Levels in SkipList, Accessed via Heads
+
+  TLess lesser;
 };
 
 // Constructor
-template <class T>
-SkipList<T>::SkipList() {
+template <class T, typename TLess>
+SkipList<T, TLess>::SkipList() {
   // Set seed for random number generator to ensure randomness
   srand(static_cast<unsigned int>(time(NULL)));
 
-  Node<T>* Head1 = new Node<T>(-INFINITY);
+  Node<T>* Head1 = new Node<T>(Min<T>());
 
-  Node<T>* Tail1 = new Node<T>(INFINITY);
+  Node<T>* Tail1 = new Node<T>(Max<T>());
 
   Head1->next = Tail1;
 
@@ -90,8 +101,8 @@ SkipList<T>::SkipList() {
   Heads.push_back(Head1);
 }
 
-template <class T>
-Node<T>* SkipList<T>::Search(T key) {
+template <class T, typename TLess>
+Node<T>* SkipList<T, TLess>::Search(T key) {
   Node<T>* topleft;
   topleft = Heads[Heads.size() - 1];
   Node<T>* pt = new Node<T>(-INFINITY);
@@ -99,9 +110,9 @@ Node<T>* SkipList<T>::Search(T key) {
   while (pt != nullptr) {
     if (pt->key == key) {
       break;
-    } else if (key > pt->key && key >= pt->next->key) {
+    } else if (key > pt->key && !this->lesser.isLessThan(key, pt->next->key)) {
       pt = pt->next;
-    } else if (key > pt->key && key < pt->next->key) {
+    } else if (key > pt->key && this->lesser.isLessThan(key, pt->next->key)) {
       pt = pt->down;
     }
   }
@@ -111,15 +122,15 @@ Node<T>* SkipList<T>::Search(T key) {
 // Insert to Level Function
 // Inserts a node to a level given the data to be inserted, The level to be
 // inserted to , the node that will be the down of the node added
-template <class T>
-Node<T>* SkipList<T>::insert_to_level(T data, int level, Node<T>* Down) {
+template <class T, typename TLess>
+Node<T>* SkipList<T, TLess>::insert_to_level(T data, int level, Node<T>* Down) {
   int i = level;
   Node<T>* N = new Node<T>(data);
   N->down = Down;
-  Node<T>* pt = new Node<T>(0);
+  Node<T>* pt; // = new Node<T>(0);
   pt = Heads[i];
 
-  while (pt->next != nullptr && data > pt->next->key) {
+  while (pt->next != nullptr && this->lesser.isLessThan(pt->next->key, data)) {
     pt = pt->next;
   }
   N->prev = pt;
@@ -130,8 +141,8 @@ Node<T>* SkipList<T>::insert_to_level(T data, int level, Node<T>* Down) {
 }
 
 // Insert to skip list function
-template <class T>
-void SkipList<T>::insert(T data) {
+template <class T, typename TLess>
+void SkipList<T, TLess>::insert(T data) {
   int i = 0;
   Node<T>* Down =
       insert_to_level(data, i, nullptr);  // Insert data to bottom level
@@ -141,8 +152,8 @@ void SkipList<T>::insert(T data) {
     i++;
     if (Levels < i) {
       Levels += 1;
-      Node<T>* NewHead = new Node<T>(-INFINITY);
-      Node<T>* NewTail = new Node<T>(INFINITY);
+      Node<T>* NewHead = new Node<T>(Min<T>());
+      Node<T>* NewTail = new Node<T>(Max<T>());
       NewHead->next = NewTail;
       NewTail->prev = NewHead;
       Heads[i - 1]->up = NewHead;
@@ -157,8 +168,8 @@ void SkipList<T>::insert(T data) {
   return;
 }
 
-template <class T>
-void SkipList<T>::Delete(T N) {
+template <class T, typename TLess>
+void SkipList<T, TLess>::Delete(T N) {
   Node<T>* pt = Search(N);
   while (pt != nullptr) {
     Node<T>* temp = pt->down;
@@ -167,8 +178,8 @@ void SkipList<T>::Delete(T N) {
   }
 }
 
-template <class T>
-void SkipList<T>::Delete_Node(Node<T>* N) {
+template <class T, typename TLess>
+void SkipList<T, TLess>::Delete_Node(Node<T>* N) {
   if (N->down != nullptr) N->down->up = nullptr;
   if (N->up != nullptr) N->up->down = nullptr;
   Node<T>* Next = N->next;
@@ -179,11 +190,11 @@ void SkipList<T>::Delete_Node(Node<T>* N) {
 }
 
 // Print Skip List Data By Level
-template <class T>
-void SkipList<T>::printData() {
+template <class T, typename TLess>
+void SkipList<T, TLess>::printData() {
   for (int i = 0; i != Heads.size(); i++) {
     cout << " LEVEL : " << i << endl;
-    Node<T>* pt = new Node<T>(-INFINITY);
+    Node<T>* pt; //= new Node<T>(Min<T>());
     pt = Heads[i];
     while (pt != nullptr) {
       pt->printData();
