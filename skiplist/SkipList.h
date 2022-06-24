@@ -115,7 +115,7 @@ private:
 public:
     SkipList();
 
-    void insert(T key, TVal value);
+    bool insert(T key, TVal value);
 
     // Print all of Linked List Data
     void printData();
@@ -158,9 +158,19 @@ LeafNode<T, TVal> *SkipList<T, TLess, TVal>::Search(T key) {
     return static_cast<LeafNode<T, TVal> *>(pt);
 }
 
+template<class T>
+void hookup_internal_node(Node<T> *node, Node<T> *right, Node<T> *down) {
+    node->next = right;
+    node->prev = right->prev;
+    right->prev->next = node;
+    right->prev = node;
+    down->up = node;
+    node->down = down;
+}
+
 // Insert to skip list function
 template<class T, typename TLess, typename TVal>
-void SkipList<T, TLess, TVal>::insert(T key, TVal value) {
+bool SkipList<T, TLess, TVal>::insert(T key, TVal value) {
     // based on https://www.geeksforgeeks.org/skip-list-set-2-insertion/
     /*    start from the highest level of skip list
         move the current pointer forward while key
@@ -190,8 +200,9 @@ void SkipList<T, TLess, TVal>::insert(T key, TVal value) {
     }
 
     // now we should be at the first node not less than key, at the leaf level
-    // todo: consider proper semantics for existent node
-    assert(pt->key != key);
+    if (pt->key == key) {
+        return false;
+    }
 
     Node<T> *leaf = new LeafNode<T, TVal>(key, value);
     leaf->next = pt;
@@ -226,16 +237,12 @@ void SkipList<T, TLess, TVal>::insert(T key, TVal value) {
         }
 
         Node<T> *N = new Node<T>(key);
-        N->next = pt;
-        N->prev = pt->prev;
-        pt->prev->next = N;
-        pt->prev = N;
-        down->up = N;
-        N->down = down;
+        hookup_internal_node(N, pt, down);
         down = N;
 
         Coin_Toss = rand() % 2;
     }
+    return true;
 }
 
 template<class T, typename TLess, typename TVal>
