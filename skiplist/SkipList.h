@@ -292,8 +292,11 @@ void SkipList<T, TLess, TVal>::printData() {
 template<class T, typename TLess, typename TVal>
 SkipList<T, TLess, TVal>::~SkipList() {
     for (list &levelist: this->Heads) {
-        for (auto p = levelist.getHeader(); p != nullptr; p = p->next) {
+        Node<T> *p = levelist.getHeader();
+        while (p) {
+            auto next = p->next;
             delete p;
+            p = next;
         }
     }
 }
