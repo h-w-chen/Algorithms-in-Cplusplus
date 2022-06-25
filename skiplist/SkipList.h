@@ -357,8 +357,9 @@ template<class T, typename TLess, typename TVal>
 typename SkipList<T, TLess, TVal>::Iterator SkipList<T, TLess, TVal>::upper_bound(T key)
 {
     auto p = this->lower_bound(key);
-//    while (!this->lesser.isLessThan(p->key, key))
-//        --p;
+    // todo: change upper_bound to bigger than key
+    // while (!this->lesser.isLessThan(key, p->key))
+    //        ++p;
     return p;
 }
 
