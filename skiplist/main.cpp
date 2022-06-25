@@ -68,6 +68,14 @@ int main() {
         cout << "found value: " << p->value << endl;
         p = mySL->Search("x");
         cout << "found node*: " << p << endl;
+
+        SkipList<std::string, strLesser, int>::Iterator p0 = mySL->lower_bound("ac");
+        SkipList<std::string, strLesser, int>::Iterator p1 = mySL->upper_bound("bx");
+        while (p0 != p1) {
+            cout << "(" << p0->key <<":" << p0->value << ") ";
+            ++p0;
+        }
+        cout << endl;
     }
 
     return 0;

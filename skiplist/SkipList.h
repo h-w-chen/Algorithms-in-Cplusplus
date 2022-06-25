@@ -127,6 +127,31 @@ public:
     void Delete(T N);
 
     ~SkipList();
+
+    // iterator for skiplist (actual at leaf level)
+    class Iterator {
+    protected:
+        LeafNode<T, TVal> *node;
+    public:
+        Iterator(LeafNode<T, TVal> *node): node(node) {}
+
+        LeafNode<T, TVal> * operator->() const {return this->node;}
+
+        Iterator& operator++() {
+            this->node = static_cast<LeafNode<T, TVal>*>(this->node->next);
+            return *this;
+        }
+
+        Iterator& operator--() {
+            this->node = static_cast<LeafNode<T, TVal>*>(this->node->prev);
+            return *this;
+        }
+
+        bool operator==(Iterator b) const { return this->node == b.node; }
+        bool operator!=(Iterator b) const { return this->node != b.node; }
+    };
+    Iterator lower_bound(T key); //{return SkipList::Iterator(nullptr);}
+    Iterator upper_bound(T key);
 };
 
 // Constructor
@@ -299,6 +324,42 @@ SkipList<T, TLess, TVal>::~SkipList() {
             p = next;
         }
     }
+}
+
+template<class T, typename TLess, typename TVal>
+typename SkipList<T, TLess, TVal>::Iterator SkipList<T, TLess, TVal>::lower_bound(T key)
+{
+    // at the highest level, locate the first node not less than key
+    Node<T> *pt = this->Heads.back().getHeader();
+    while (this->lesser.isLessThan(pt->key, key)) {
+        pt = pt->next;
+    }
+
+    // go through all subsequent levels
+    int level = this->Heads.size() - 2;
+    while (level >= 0) {
+        assert(pt->key == pt->down->key);
+        assert(!this->lesser.isLessThan(pt->key, key));
+        pt = pt->down;
+        while (!this->lesser.isLessThan(pt->prev->key, key)) {
+            pt = pt->prev;
+        }
+        level--;
+    }
+
+    // now we should have reached the first node not less than key, at the leaf level
+    assert(this->lesser.isLessThan(pt->prev->key, key));
+    assert(!this->lesser.isLessThan(pt->key, key));
+    return SkipList::Iterator(static_cast<LeafNode<T, TVal>*>(pt));
+}
+
+template<class T, typename TLess, typename TVal>
+typename SkipList<T, TLess, TVal>::Iterator SkipList<T, TLess, TVal>::upper_bound(T key)
+{
+    auto p = this->lower_bound(key);
+//    while (!this->lesser.isLessThan(p->key, key))
+//        --p;
+    return p;
 }
 
 #endif
