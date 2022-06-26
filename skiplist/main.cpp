@@ -8,7 +8,7 @@ int main() {
                 return a < b;
             }
         };
-        SkipList<int, intLesser, int> *mySL = new SkipList<int, intLesser, int>();
+        hwlib::SkipList<int, intLesser, int> *mySL = new hwlib::SkipList<int, intLesser, int>();
 
         cout << "SKIP LIST DATA : " << endl;
         mySL->insert(4, 88);
@@ -41,15 +41,15 @@ int main() {
     {
         struct strLesser {
             bool isLessThan(std::string a, std::string b) {
-                if (a == Min<std::string>() || b == Max<std::string>())
+                if (a == hwlib::Min<std::string>() || b == hwlib::Max<std::string>())
                     return true;
-                if (a == Max<std::string>() || b == Min<std::string>())
+                if (a == hwlib::Max<std::string>() || b == hwlib::Min<std::string>())
                     return false;
                 return a < b;
             }
         };
 
-        SkipList<std::string, strLesser, int> *mySL = new SkipList<std::string, strLesser, int>();
+        hwlib::SkipList<std::string, strLesser, int> *mySL = new hwlib::SkipList<std::string, strLesser, int>();
 
         cout << "SKIP LIST DATA : " << endl;
         mySL->insert("a", 100);
@@ -69,8 +69,8 @@ int main() {
         p = mySL->Search("x");
         cout << "found node*: " << p << endl;
 
-        SkipList<std::string, strLesser, int>::Iterator p0 = mySL->lower_bound("ac");
-        SkipList<std::string, strLesser, int>::Iterator p1 = mySL->upper_bound("bx");
+        hwlib::SkipList<std::string, strLesser, int>::Iterator p0 = mySL->lower_bound("ac");
+        hwlib::SkipList<std::string, strLesser, int>::Iterator p1 = mySL->upper_bound("bx");
         while (p0 != p1) {
             cout << "(" << p0->key <<":" << p0->value << ") ";
             ++p0;
